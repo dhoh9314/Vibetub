@@ -136,6 +136,7 @@ function VibeTubeApp() {
               isAnalyzing={isAnalyzing}
               error={error}
               onTryAgain={handleClear}
+              previewUrl={previewUrl}
             />
           </motion.div>
         </div>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Music, Disc3, Sparkles, RotateCcw, AlertCircle, ExternalLink, Play } from "lucide-react";
+import { Music, Disc3, Sparkles, RotateCcw, AlertCircle, ExternalLink, Play, CreditCard } from "lucide-react";
 import { useI18n } from "./i18n";
+import { VibeCard } from "./VibeCard";
 
 export interface VibeResult {
   vibe: string;
@@ -19,13 +20,15 @@ interface ResultDisplayProps {
   isAnalyzing: boolean;
   error: string | null;
   onTryAgain: () => void;
+  previewUrl: string | null;
 }
 
-export function ResultDisplay({ result, isAnalyzing, error, onTryAgain }: ResultDisplayProps) {
+export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewUrl }: ResultDisplayProps) {
   const { t } = useI18n();
   const [isPlaying, setIsPlaying] = useState(false);
   const [thumbnailError, setThumbnailError] = useState(false);
   const [embedError, setEmbedError] = useState(false);
+  const [showCard, setShowCard] = useState(false);
 
   // Reset playing state when result changes
   useEffect(() => {
@@ -239,7 +242,18 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain }: Result
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
+        className="flex items-center gap-3"
       >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowCard(true)}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 hover:border-violet-300 hover:bg-violet-50 text-gray-700 rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+          style={{ fontSize: "0.875rem", fontWeight: 500 }}
+        >
+          <CreditCard className="w-4 h-4" />
+          {t("makeCard")}
+        </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -251,6 +265,15 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain }: Result
           {t("tryAgainAction")}
         </motion.button>
       </motion.div>
+
+      {/* Vibe Card Modal */}
+      {showCard && previewUrl && (
+        <VibeCard
+          result={result}
+          previewUrl={previewUrl}
+          onClose={() => setShowCard(false)}
+        />
+      )}
     </motion.div>
   );
 }

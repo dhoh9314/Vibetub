@@ -55,6 +55,8 @@ You MUST respond with ONLY valid JSON in this exact format (no markdown, no code
 Guidelines:
 - Pick real, well-known songs that genuinely match the mood
 - Be creative and specific — don't always pick obvious choices
+- IMPORTANT: Recommend songs from diverse countries and languages worldwide — Korean (K-pop, K-indie, K-R&B), Japanese (J-pop, city pop, anime OST), Chinese (C-pop, Mandopop), Latin (reggaeton, bossa nova), French (chanson, French pop), African, Indian, Middle Eastern, European, and more. Do NOT default to American/English songs. Match the cultural context of the image when possible.
+- Mix across eras: classic, retro, modern, current hits — surprise the user
 - The description should reference what you actually see in the image
 - The color should reflect the dominant mood/palette of the image`;
 
