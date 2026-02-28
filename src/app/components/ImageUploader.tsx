@@ -33,6 +33,7 @@ export function ImageUploader({
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
+      // Only take the first file, ignore rest
       const file = e.dataTransfer.files[0];
       if (file) handleFile(file);
     },
@@ -59,6 +60,7 @@ export function ImageUploader({
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple={false}
         onChange={handleChange}
         className="hidden"
       />

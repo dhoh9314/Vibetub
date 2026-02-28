@@ -44,15 +44,24 @@ function VibeTubeApp() {
       {/* Header */}
       <header className="w-full border-b border-border/60 bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-center gap-2.5 relative">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          <a
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.reload();
+            }}
+            className="flex items-center gap-2.5 cursor-pointer"
           >
-            <Disc3 className="w-7 h-7 text-violet-600" />
-          </motion.div>
-          <h1 className="text-foreground tracking-tight" style={{ fontFamily: "'SlowGothic', sans-serif" }}>
-            {t("headerTitle")}<span className="text-violet-600">{t("headerHighlight")}</span>
-          </h1>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            >
+              <Disc3 className="w-7 h-7 text-violet-600" />
+            </motion.div>
+            <h1 className="text-foreground tracking-tight" style={{ fontFamily: "'SlowGothic', sans-serif" }}>
+              {t("headerTitle")}<span className="text-violet-600">{t("headerHighlight")}</span>
+            </h1>
+          </a>
           <div className="absolute right-6">
             <LanguageSwitcher />
           </div>
@@ -133,9 +142,9 @@ function VibeTubeApp() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-border/60 bg-white/60">
+      <footer className="w-full border-t border-border/30 bg-white/40">
         <div className="max-w-5xl mx-auto px-6 py-5 text-center">
-          <p className="text-muted-foreground" style={{ fontSize: "0.8125rem" }}>
+          <p className="text-gray-300" style={{ fontSize: "0.75rem" }}>
             {t("footer")}
           </p>
         </div>
