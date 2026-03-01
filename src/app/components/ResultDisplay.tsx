@@ -13,6 +13,7 @@ export interface VibeResult {
   description: string;
   youtubeId: string | null;
   youtubeSearchQuery: string;
+  youtubeDebug?: { status: string; reason?: string; candidateCount?: number; apiError?: string; keyPrefix?: string };
 }
 
 interface ResultDisplayProps {
@@ -25,20 +26,11 @@ interface ResultDisplayProps {
 
 export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewUrl }: ResultDisplayProps) {
   const { t } = useI18n();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [thumbnailError, setThumbnailError] = useState(false);
   const [embedError, setEmbedError] = useState(false);
   const [showCard, setShowCard] = useState(false);
 
-  // Reset playing state when result changes
+  // Reset state when result changes
   useEffect(() => {
-    // Auto-play when video is available
-    if (result?.youtubeId) {
-      setIsPlaying(true);
-    } else {
-      setIsPlaying(false);
-    }
-    setThumbnailError(false);
     setEmbedError(false);
   }, [result?.youtubeId]);
 
@@ -99,22 +91,34 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewU
 
   const hasVideo = !!result.youtubeId;
   const embedSrc = hasVideo
-    ? `https://www.youtube-nocookie.com/embed/${result.youtubeId}?autoplay=1&rel=0&enablejsapi=1`
+    ? `https://www.youtube-nocookie.com/embed/${result.youtubeId}?rel=0`
     : null;
   const youtubeWatchUrl = hasVideo
     ? `https://www.youtube.com/watch?v=${result.youtubeId}`
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(result.youtubeSearchQuery)}`;
-  const thumbnailUrl = hasVideo
-    ? `https://img.youtube.com/vi/${result.youtubeId}/hqdefault.jpg`
-    : null;
 
   // Debug: Log video info
   console.log("🎬 Video display info:", {
     hasVideo,
     youtubeId: result.youtubeId,
-    thumbnailUrl,
     embedSrc,
+    youtubeDebug: result.youtubeDebug,
   });
+
+  // Determine YouTube debug status message
+  const debugStatus = !hasVideo && result.youtubeDebug
+    ? result.youtubeDebug.status === "no_api_key"
+      ? "⚠️ YOUTUBE_API_KEY is not set in Supabase Edge Function secrets"
+      : result.youtubeDebug.status === "not_found" && result.youtubeDebug.reason === "all_not_embeddable"
+        ? `⚠️ Found ${result.youtubeDebug.candidateCount} videos but none are embeddable`
+        : result.youtubeDebug.status === "not_found" && result.youtubeDebug.reason === "no_candidates"
+          ? `⚠️ YouTube search returned 0 results${result.youtubeDebug.apiError ? `\n🔴 API Error: ${result.youtubeDebug.apiError}` : " (no API error returned — check if YouTube Data API v3 is enabled)"}${result.youtubeDebug.keyPrefix ? `\n🔑 Key prefix: ${result.youtubeDebug.keyPrefix}` : ""}`
+          : result.youtubeDebug.status === "exception"
+            ? `⚠️ YouTube API exception: ${result.youtubeDebug.apiError}`
+            : `⚠️ YouTube debug: ${JSON.stringify(result.youtubeDebug)}`
+    : !hasVideo
+      ? "⚠️ No youtubeDebug info returned from server"
+      : null;
 
   return (
     <motion.div
@@ -162,7 +166,7 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewU
         </p>
       </motion.div>
 
-      {/* YouTube Player - click-to-play with thumbnail */}
+      {/* YouTube Player */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -170,7 +174,7 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewU
         className="w-full rounded-xl overflow-hidden mb-4"
         style={{ aspectRatio: "16 / 9" }}
       >
-        {isPlaying && embedSrc && !embedError ? (
+        {hasVideo && embedSrc && !embedError ? (
           <iframe
             src={embedSrc}
             title={`${result.songTitle} by ${result.artist}`}
@@ -179,24 +183,6 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewU
             className="w-full h-full border-0"
             onError={() => setEmbedError(true)}
           />
-        ) : hasVideo && thumbnailUrl && !thumbnailError && !embedError ? (
-          <div
-            onClick={() => setIsPlaying(true)}
-            className="group relative w-full h-full bg-gray-900 cursor-pointer"
-          >
-            <img
-              src={thumbnailUrl}
-              alt={`${result.songTitle} by ${result.artist}`}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              onError={() => setThumbnailError(true)}
-            />
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-red-600 group-hover:bg-red-700 flex items-center justify-center shadow-lg transition-all duration-200 group-hover:scale-110">
-                <Play className="w-7 h-7 text-white ml-0.5" fill="white" />
-              </div>
-            </div>
-          </div>
         ) : (
           <a
             href={youtubeWatchUrl}
@@ -217,6 +203,13 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewU
           </a>
         )}
       </motion.div>
+
+      {/* YouTube Debug Info - shown when video not found */}
+      {debugStatus && (
+        <div className="w-full mb-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-left">
+          <p className="text-amber-800 text-xs font-mono leading-relaxed" style={{ whiteSpace: "pre-wrap" }}>{debugStatus}</p>
+        </div>
+      )}
 
       {/* Watch on YouTube link */}
       <motion.div

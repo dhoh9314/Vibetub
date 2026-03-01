@@ -1,13 +1,17 @@
 import { useRef, useState, useCallback } from "react";
 import html2canvas from "html2canvas";
 import {
-  Play,
   Sparkles,
   X,
   Download,
   Loader2,
   RectangleVertical,
   RectangleHorizontal,
+  SkipBack,
+  SkipForward,
+  Pause,
+  Heart,
+  ListMusic,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useI18n } from "./i18n";
@@ -36,13 +40,6 @@ const FRAME_THEMES: { key: FrameTheme; icon: string; label: string }[] = [
   { key: "neon", icon: "✨", label: "Neon" },
 ];
 
-// SVG icons for social platforms (no lucide equivalents)
-const InstagramIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-  </svg>
-);
-
 const ThreadsIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.187.408-2.26 1.33-3.017.88-.723 2.08-1.128 3.378-1.17 1.08-.033 2.075.122 2.97.453-.09-.58-.272-1.074-.545-1.47-.496-.72-1.302-1.1-2.4-1.132h-.048c-.876 0-1.627.275-2.174.795l-1.418-1.42c.855-.834 1.994-1.293 3.592-1.293h.067c1.71.05 3.03.678 3.925 1.865.828 1.1 1.264 2.596 1.3 4.45l.003.245c.006.468-.015.895-.064 1.283 1.07.635 1.905 1.504 2.418 2.58.8 1.68.874 4.457-1.236 6.545C17.676 23.18 15.438 23.96 12.186 24zm-1.638-8.062c-.921.028-1.61.244-2.043.588-.347.278-.517.617-.493 1.008.04.7.546 1.49 2.162 1.574 1.09.06 2.025-.216 2.63-.777.543-.503.878-1.236.998-2.164-.756-.263-1.607-.397-2.535-.397-.243 0-.488.012-.72.037v.131z" />
@@ -59,8 +56,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
   const getCanvas = useCallback(async () => {
     if (!cardRef.current) return null;
 
-    // html2canvas cannot parse oklch() colors from Tailwind v4.
-    // Override any inherited oklch values before capture, then restore.
     const elements = cardRef.current.querySelectorAll("*");
     const saved: { el: HTMLElement; bc: string; oc: string }[] = [];
 
@@ -111,7 +106,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
     }
   }, [result.vibe, getCanvas]);
 
-  // Social share handlers
   const shareText = `My vibe is "${result.emoji} ${result.vibe}"!\nTheme song: ${result.songTitle} by ${result.artist} 🎵`;
   const shareUrl = "https://vibetube.vercel.app";
 
@@ -122,12 +116,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
     );
   }, [shareText]);
 
-  const handleInstagramShare = useCallback(async () => {
-    // Instagram doesn't support web share intents.
-    // Download the card image so the user can post it on Instagram.
-    await handleDownload();
-  }, [handleDownload]);
-
   const handleThreadsShare = useCallback(() => {
     const text = `${shareText}\n${shareUrl}`;
     window.open(
@@ -137,12 +125,12 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
   }, [shareText]);
 
   const isLandscape = orientation === "landscape";
-  const aspectRatio = isLandscape ? "4 / 3" : "3 / 4";
+  // padding-top percentage hack for html2canvas (it doesn't support aspectRatio CSS)
+  const paddingTop = isLandscape ? "75%" : "133.33%";
 
   const getFrameStyles = (): React.CSSProperties => {
     const base: React.CSSProperties = {
       width: "100%",
-      overflow: "hidden",
       position: "relative",
       borderColor: "transparent",
       outlineColor: "transparent",
@@ -272,7 +260,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
             <X style={{ width: "16px", height: "16px", color: "#555" }} />
           </button>
 
-          {/* Top controls: Frame themes + Orientation toggle */}
+          {/* Top controls */}
           <div
             style={{
               display: "flex",
@@ -282,7 +270,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
               justifyContent: "center",
             }}
           >
-            {/* Frame selector */}
             <div
               style={{
                 display: "flex",
@@ -317,7 +304,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
               ))}
             </div>
 
-            {/* Orientation toggle */}
             <div
               style={{
                 display: "flex",
@@ -389,140 +375,198 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                 </>
               )}
 
-              {/* Photo container */}
+              {/*
+                Photo container — three-layer approach:
+                Layer 1: overflow:hidden for border-radius clipping of background image
+                Layer 2: badge+play at TOP — outside overflow:hidden so never clips
+                Layer 3: song info + player at BOTTOM — outside overflow:hidden
+              */}
               <div
                 style={{
                   position: "relative",
                   width: "100%",
-                  aspectRatio,
+                  paddingTop,
                   borderRadius: getImageRadius(),
-                  overflow: "hidden",
                 }}
               >
-                <img
-                  src={previewUrl}
-                  alt="Vibe"
-                  crossOrigin="anonymous"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-
-                {/* Gradient overlay */}
+                {/* Layer 1: Image + gradient — overflow:hidden for border-radius crop */}
                 <div
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background: isLandscape
-                      ? "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 35%, transparent 60%)"
-                      : "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 28%, transparent 55%)",
+                    overflow: "hidden",
+                    borderRadius: getImageRadius(),
+                    backgroundImage: `url(${previewUrl})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
                   }}
-                />
+                >
+                  {/* Gradient overlay */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: isLandscape
+                        ? "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 40%, transparent 65%)"
+                        : "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 32%, transparent 58%)",
+                    }}
+                  />
+                </div>
 
-                {/* Mini player UI */}
+                {/* Layer 2: Badge at TOP — outside overflow:hidden */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    padding: isLandscape ? "16px 20px" : "16px 16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 3,
+                  }}
+                >
+                  {/* Vibe badge — no background, text only */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                      fontWeight: 700,
+                      fontSize: "0.8rem",
+                      lineHeight: "1.2",
+                      color: "#ffffff",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase" as const,
+                      textShadow: "0 2px 8px rgba(0,0,0,0.6)",
+                      whiteSpace: "nowrap" as const,
+                      textAlign: "center" as const,
+                    }}
+                  >
+                    <Sparkles style={{ width: "13px", height: "13px", flexShrink: 0, color: "#fff", filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.4))" }} />
+                    <span>{result.emoji} {result.vibe}</span>
+                  </div>
+                </div>
+
+                {/* Layer 3: Song info + Player UI at BOTTOM — outside overflow:hidden */}
                 <div
                   style={{
                     position: "absolute",
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    padding: isLandscape ? "24px 20px 14px 20px" : "32px 16px 16px 16px",
+                    padding: isLandscape ? "20px 24px 16px 24px" : "24px 20px 18px 20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "12px",
+                    zIndex: 3,
                   }}
                 >
-                  {/* Vibe badge */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    <span
+                  {/* Song title + artist */}
+                  <div style={{ textAlign: "center", width: "100%", padding: "0 4px" }}>
+                    <p
                       style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        padding: "4px 12px",
-                        borderRadius: "9999px",
-                        fontWeight: 600,
-                        fontSize: "0.65rem",
-                        backgroundColor: result.color,
                         color: "#ffffff",
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
-                        boxShadow: `0 2px 10px ${hexToRgba(result.color, 0.5)}`,
+                        fontWeight: 600,
+                        fontSize: isLandscape ? "1rem" : "0.9rem",
+                        lineHeight: "1.35",
+                        margin: 0,
+                        wordBreak: "break-word" as const,
                       }}
                     >
-                      <Sparkles style={{ width: "10px", height: "10px", color: "#fff" }} />
-                      {result.emoji} {result.vibe}
-                    </span>
+                      {result.songTitle}
+                    </p>
+                    <p
+                      style={{
+                        color: "rgba(255,255,255,0.55)",
+                        fontSize: isLandscape ? "0.78rem" : "0.72rem",
+                        lineHeight: "1.35",
+                        margin: "4px 0 0 0",
+                        wordBreak: "break-word" as const,
+                      }}
+                    >
+                      {result.artist}
+                    </p>
                   </div>
 
-                  {/* Centered song info with play button */}
+                  {/* Player UI — transparent, no background */}
                   <div
                     style={{
+                      width: "100%",
                       display: "flex",
                       flexDirection: "column",
-                      alignItems: "center",
                       gap: "10px",
                     }}
                   >
-                    {/* Play button */}
+                    {/* Progress bar */}
                     <div
                       style={{
-                        width: "42px",
-                        height: "42px",
-                        borderRadius: "9999px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: `linear-gradient(135deg, ${result.color}, ${hexToRgba(result.color, 0.7)})`,
-                        boxShadow: `0 3px 14px ${hexToRgba(result.color, 0.45)}`,
+                        width: "100%",
+                        height: "3px",
+                        backgroundColor: "rgba(255,255,255,0.2)",
+                        borderRadius: "2px",
+                        position: "relative",
                       }}
                     >
-                      <Play
+                      <div
                         style={{
-                          width: "17px",
-                          height: "17px",
-                          color: "#fff",
-                          marginLeft: "2px",
-                          fill: "#fff",
+                          width: "65%",
+                          height: "100%",
+                          backgroundColor: "#ffffff",
+                          borderRadius: "2px",
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "65%",
+                          transform: "translate(-50%, -50%)",
+                          width: "9px",
+                          height: "9px",
+                          borderRadius: "9999px",
+                          backgroundColor: "#ffffff",
+                          boxShadow: "0 0 4px rgba(0,0,0,0.3)",
                         }}
                       />
                     </div>
 
-                    {/* Song title + artist centered */}
-                    <div style={{ textAlign: "center", width: "100%" }}>
-                      <p
+                    {/* Playback controls */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "0 8px",
+                      }}
+                    >
+                      <ListMusic style={{ width: "15px", height: "15px", color: "rgba(255,255,255,0.5)" }} />
+                      <SkipBack style={{ width: "15px", height: "15px", color: "#fff", fill: "#fff" }} />
+                      <div
                         style={{
-                          color: "#ffffff",
-                          fontWeight: 600,
-                          fontSize: isLandscape ? "1rem" : "0.9rem",
-                          lineHeight: 1.3,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          margin: 0,
+                          width: "34px",
+                          height: "34px",
+                          borderRadius: "9999px",
+                          backgroundColor: "#ffffff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                         }}
                       >
-                        {result.songTitle}
-                      </p>
-                      <p
-                        style={{
-                          color: "rgba(255,255,255,0.55)",
-                          fontSize: isLandscape ? "0.78rem" : "0.72rem",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          margin: "3px 0 0 0",
-                        }}
-                      >
-                        {result.artist}
-                      </p>
+                        <Pause style={{ width: "16px", height: "16px", color: "#000", fill: "#000" }} />
+                      </div>
+                      <SkipForward style={{ width: "15px", height: "15px", color: "#fff", fill: "#fff" }} />
+                      <Heart style={{ width: "15px", height: "15px", color: "rgba(255,255,255,0.5)" }} />
                     </div>
                   </div>
 
                   {/* Watermark */}
-                  <div style={{ marginTop: "12px", textAlign: "right" }}>
+                  <div style={{ width: "100%", textAlign: "right" }}>
                     <span
                       style={{
                         color: "rgba(255,255,255,0.25)",
@@ -555,7 +599,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
             </div>
           </div>
 
-          {/* Action buttons: Download + X + Instagram + Threads */}
+          {/* Action buttons: Download + X + Threads */}
           <div
             style={{
               display: "flex",
@@ -564,7 +608,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
               justifyContent: "center",
             }}
           >
-            {/* Download */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -603,17 +646,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
               title="Share on X"
             >
               <span style={{ fontSize: "1rem", fontWeight: 700 }}>𝕏</span>
-            </motion.button>
-
-            {/* Instagram */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleInstagramShare}
-              style={socialBtnStyle}
-              title="Save for Instagram"
-            >
-              <InstagramIcon />
             </motion.button>
 
             {/* Threads */}

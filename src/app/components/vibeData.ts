@@ -57,5 +57,6 @@ export async function analyzeVibe(file: File): Promise<VibeResult> {
     description: r.description,
     youtubeId: r.youtubeId || null,
     youtubeSearchQuery: r.youtubeSearchQuery || `${r.artist} ${r.songTitle}`,
+    youtubeDebug: r.youtubeDebug || undefined,
   };
 }

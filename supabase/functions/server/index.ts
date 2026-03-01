@@ -128,6 +128,9 @@ Guidelines:
     const youtubeKey = Deno.env.get("YOUTUBE_API_KEY");
     if (youtubeKey) {
       try {
+        // Track YouTube API errors for debugging
+        let lastYouTubeError: string | null = null;
+
         // Helper: search YouTube and return candidate video IDs
         const searchYouTube = async (query: string, embeddableOnly: boolean): Promise<string[]> => {
           const params = new URLSearchParams({
@@ -144,6 +147,7 @@ Guidelines:
           if (!res.ok) {
             const errText = await res.text();
             console.log(`YouTube search error (${res.status}) for "${query}": ${errText}`);
+            lastYouTubeError = `HTTP ${res.status}: ${errText.substring(0, 500)}`;
             return [];
           }
           const data = await res.json();
@@ -224,11 +228,18 @@ Guidelines:
           console.log(`Final selected YouTube video: ${bestId}`);
         } else {
           parsed.youtubeId = null;
-          parsed.youtubeDebug = { status: "not_found", candidateCount: candidates.length, reason: candidates.length > 0 ? "all_not_embeddable" : "no_candidates" };
-          console.log(`No embeddable YouTube video found after all attempts (${candidates.length} candidates checked)`);
+          parsed.youtubeDebug = {
+            status: "not_found",
+            candidateCount: candidates.length,
+            reason: candidates.length > 0 ? "all_not_embeddable" : "no_candidates",
+            apiError: lastYouTubeError || undefined,
+            keyPrefix: youtubeKey.substring(0, 8) + "...",
+          };
+          console.log(`No embeddable YouTube video found after all attempts (${candidates.length} candidates checked). Last API error: ${lastYouTubeError}`);
         }
       } catch (ytErr) {
         console.log("YouTube search failed (non-fatal):", ytErr);
+        parsed.youtubeDebug = { status: "exception", apiError: String(ytErr).substring(0, 500) };
       }
     } else {
       console.log("YOUTUBE_API_KEY not set, skipping YouTube video search");

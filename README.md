@@ -1,7 +1,7 @@
 
-  # VibeTube web service
+  # vibetube
 
-  This is a code bundle for VibeTube web service. The original project is available at https://www.figma.com/design/xh2OrLu6J4vIyBr5ZFcvlv/VibeTube-web-service.
+  This is a code bundle for vibetube. The original project is available at https://www.figma.com/design/xh2OrLu6J4vIyBr5ZFcvlv/vibetube.
 
   ## Running the code
 

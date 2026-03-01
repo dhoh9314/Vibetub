@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "motion/react";
-import { Disc3 } from "lucide-react";
+import { Disc3, Music } from "lucide-react";
 import { ImageUploader } from "./components/ImageUploader";
 import { ResultDisplay, type VibeResult } from "./components/ResultDisplay";
 import { analyzeVibe } from "./components/vibeData";
@@ -76,8 +76,10 @@ function VibeTubeApp() {
           transition={{ duration: 0.4 }}
           className="text-center mb-6"
         >
-          <h2 className="text-foreground mb-2" style={{ fontFamily: "'SlowGothic', sans-serif" }}>
+          <h2 className="text-foreground mb-2 flex items-center justify-center gap-2" style={{ fontFamily: "'SlowGothic', sans-serif" }}>
+            <Music className="w-5 h-5 text-violet-500" />
             {t("heroTitle")}
+            <Music className="w-5 h-5 text-violet-500" />
           </h2>
           {/* description removed */}
         </motion.div>
