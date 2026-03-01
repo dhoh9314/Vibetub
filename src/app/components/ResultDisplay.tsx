@@ -13,7 +13,6 @@ export interface VibeResult {
   description: string;
   youtubeId: string | null;
   youtubeSearchQuery: string;
-  youtubeDebug?: { status: string; reason?: string; candidateCount?: number; apiError?: string; keyPrefix?: string };
 }
 
 interface ResultDisplayProps {
@@ -102,23 +101,7 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewU
     hasVideo,
     youtubeId: result.youtubeId,
     embedSrc,
-    youtubeDebug: result.youtubeDebug,
   });
-
-  // Determine YouTube debug status message
-  const debugStatus = !hasVideo && result.youtubeDebug
-    ? result.youtubeDebug.status === "no_api_key"
-      ? "⚠️ YOUTUBE_API_KEY is not set in Supabase Edge Function secrets"
-      : result.youtubeDebug.status === "not_found" && result.youtubeDebug.reason === "all_not_embeddable"
-        ? `⚠️ Found ${result.youtubeDebug.candidateCount} videos but none are embeddable`
-        : result.youtubeDebug.status === "not_found" && result.youtubeDebug.reason === "no_candidates"
-          ? `⚠️ YouTube search returned 0 results${result.youtubeDebug.apiError ? `\n🔴 API Error: ${result.youtubeDebug.apiError}` : " (no API error returned — check if YouTube Data API v3 is enabled)"}${result.youtubeDebug.keyPrefix ? `\n🔑 Key prefix: ${result.youtubeDebug.keyPrefix}` : ""}`
-          : result.youtubeDebug.status === "exception"
-            ? `⚠️ YouTube API exception: ${result.youtubeDebug.apiError}`
-            : `⚠️ YouTube debug: ${JSON.stringify(result.youtubeDebug)}`
-    : !hasVideo
-      ? "⚠️ No youtubeDebug info returned from server"
-      : null;
 
   return (
     <motion.div
@@ -203,13 +186,6 @@ export function ResultDisplay({ result, isAnalyzing, error, onTryAgain, previewU
           </a>
         )}
       </motion.div>
-
-      {/* YouTube Debug Info - shown when video not found */}
-      {debugStatus && (
-        <div className="w-full mb-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-left">
-          <p className="text-amber-800 text-xs font-mono leading-relaxed" style={{ whiteSpace: "pre-wrap" }}>{debugStatus}</p>
-        </div>
-      )}
 
       {/* Watch on YouTube link */}
       <motion.div

@@ -45,7 +45,6 @@ export async function analyzeVibe(file: File): Promise<VibeResult> {
     artist: r.artist,
     youtubeId: r.youtubeId,
     hasVideo: !!r.youtubeId,
-    youtubeDebug: r.youtubeDebug || "no debug info",
   });
 
   return {
@@ -57,6 +56,5 @@ export async function analyzeVibe(file: File): Promise<VibeResult> {
     description: r.description,
     youtubeId: r.youtubeId || null,
     youtubeSearchQuery: r.youtubeSearchQuery || `${r.artist} ${r.songTitle}`,
-    youtubeDebug: r.youtubeDebug || undefined,
   };
 }

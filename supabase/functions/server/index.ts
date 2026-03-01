@@ -24,6 +24,41 @@ app.get("/make-server-8d7c61d9/health", (c) => {
   return c.json({ status: "ok" });
 });
 
+// YouTube cache helpers
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+function ytCacheKey(artist: string, songTitle: string): string {
+  return `yt_cache:${artist.toLowerCase().trim()}:${songTitle.toLowerCase().trim()}`;
+}
+
+async function getYtCache(artist: string, songTitle: string): Promise<string | null | undefined> {
+  try {
+    const key = ytCacheKey(artist, songTitle);
+    const cached = await kv.get(key);
+    if (!cached) return undefined; // no cache entry
+    // Check TTL
+    if (Date.now() - cached.cachedAt > CACHE_TTL_MS) {
+      console.log(`YouTube cache expired for "${artist} - ${songTitle}"`);
+      return undefined; // expired
+    }
+    console.log(`YouTube cache HIT for "${artist} - ${songTitle}" -> ${cached.youtubeId}`);
+    return cached.youtubeId; // can be null (meaning "we searched but found nothing")
+  } catch (err) {
+    console.log(`YouTube cache read error: ${err}`);
+    return undefined;
+  }
+}
+
+async function setYtCache(artist: string, songTitle: string, youtubeId: string | null): Promise<void> {
+  try {
+    const key = ytCacheKey(artist, songTitle);
+    await kv.set(key, { youtubeId, cachedAt: Date.now() });
+    console.log(`YouTube cache SET for "${artist} - ${songTitle}" -> ${youtubeId}`);
+  } catch (err) {
+    console.log(`YouTube cache write error (non-fatal): ${err}`);
+  }
+}
+
 // Analyze image vibe using OpenAI Vision
 app.post("/make-server-8d7c61d9/analyze-vibe", async (c) => {
   try {
@@ -124,126 +159,113 @@ Guidelines:
       );
     }
 
-    // Search YouTube for the exact video ID
+    // ===== YouTube Search with KV Cache =====
     const youtubeKey = Deno.env.get("YOUTUBE_API_KEY");
     if (youtubeKey) {
       try {
-        // Track YouTube API errors for debugging
-        let lastYouTubeError: string | null = null;
-
-        // Helper: search YouTube and return candidate video IDs
-        const searchYouTube = async (query: string, embeddableOnly: boolean): Promise<string[]> => {
-          const params = new URLSearchParams({
-            part: "snippet",
-            q: query,
-            type: "video",
-            maxResults: "10",
-            key: youtubeKey,
-          });
-          if (embeddableOnly) params.set("videoEmbeddable", "true");
-
-          const url = `https://www.googleapis.com/youtube/v3/search?${params}`;
-          const res = await fetch(url);
-          if (!res.ok) {
-            const errText = await res.text();
-            console.log(`YouTube search error (${res.status}) for "${query}": ${errText}`);
-            lastYouTubeError = `HTTP ${res.status}: ${errText.substring(0, 500)}`;
-            return [];
-          }
-          const data = await res.json();
-          return (
-            data.items
-              ?.filter(
-                (item: any) =>
-                  item.id?.videoId &&
-                  item.snippet?.title !== "Deleted video" &&
-                  item.snippet?.title !== "Private video"
-              )
-              ?.map((item: any) => item.id.videoId) || []
-          );
-        };
-
-        // Helper: verify candidates and pick the best embeddable one
-        const pickBestVideo = async (candidateIds: string[]): Promise<string | null> => {
-          if (candidateIds.length === 0) return null;
-          const verifyUrl = `https://www.googleapis.com/youtube/v3/videos?part=status,contentDetails&id=${candidateIds.join(",")}&key=${youtubeKey}`;
-          const res = await fetch(verifyUrl);
-          if (!res.ok) {
-            console.log(`Verify API failed (${res.status}), skipping verification`);
-            // Don't blindly return first candidate — it might not be embeddable
-            return candidateIds[0];
-          }
-          const data = await res.json();
-          const playable = data.items?.find(
-            (v: any) => v.status?.embeddable === true && v.status?.privacyStatus === "public"
-          );
-          if (playable) {
-            console.log(`Verified embeddable video: ${playable.id}`);
-            return playable.id;
-          }
-          // None passed embed check — return null instead of a non-embeddable video
-          console.log(`All ${candidateIds.length} candidates failed embed verification — returning null`);
-          return null;
-        };
-
-        const primaryQuery = parsed.youtubeSearchQuery || `${parsed.artist} ${parsed.songTitle}`;
-        console.log(`YouTube primary search: "${primaryQuery}"`);
-
-        // Attempt 1: primary query with embeddable filter
-        let candidates = await searchYouTube(primaryQuery, true);
-        console.log(`Attempt 1 (embeddable): ${candidates.length} candidates`);
-
-        // Attempt 2: primary query without embeddable filter
-        if (candidates.length === 0) {
-          candidates = await searchYouTube(primaryQuery, false);
-          console.log(`Attempt 2 (no filter): ${candidates.length} candidates`);
-        }
-
-        // Attempt 3: artist + song title + "official" keyword
-        if (candidates.length === 0) {
-          const officialQuery = `${parsed.artist} ${parsed.songTitle} official`;
-          candidates = await searchYouTube(officialQuery, false);
-          console.log(`Attempt 3 (official "${officialQuery}"): ${candidates.length} candidates`);
-        }
-
-        // Attempt 4: simpler query (just artist + song title)
-        if (candidates.length === 0) {
-          const simpleQuery = `${parsed.artist} ${parsed.songTitle}`;
-          if (simpleQuery !== primaryQuery) {
-            candidates = await searchYouTube(simpleQuery, false);
-            console.log(`Attempt 4 (simple "${simpleQuery}"): ${candidates.length} candidates`);
-          }
-        }
-
-        // Attempt 5: even simpler - just song title
-        if (candidates.length === 0) {
-          candidates = await searchYouTube(parsed.songTitle, false);
-          console.log(`Attempt 5 (title only "${parsed.songTitle}"): ${candidates.length} candidates`);
-        }
-
-        const bestId = await pickBestVideo(candidates);
-        if (bestId) {
-          parsed.youtubeId = bestId;
-          parsed.youtubeDebug = { status: "found", attempts: 5 };
-          console.log(`Final selected YouTube video: ${bestId}`);
+        // 1) Check cache first
+        const cachedId = await getYtCache(parsed.artist, parsed.songTitle);
+        if (cachedId !== undefined) {
+          // Cache hit (cachedId can be null = "previously searched, not found")
+          parsed.youtubeId = cachedId;
+          console.log(`Using cached YouTube ID: ${cachedId}`);
         } else {
-          parsed.youtubeId = null;
-          parsed.youtubeDebug = {
-            status: "not_found",
-            candidateCount: candidates.length,
-            reason: candidates.length > 0 ? "all_not_embeddable" : "no_candidates",
-            apiError: lastYouTubeError || undefined,
-            keyPrefix: youtubeKey.substring(0, 8) + "...",
+          // 2) Cache miss — search YouTube API
+          const searchYouTube = async (query: string, embeddableOnly: boolean): Promise<string[]> => {
+            const params = new URLSearchParams({
+              part: "snippet",
+              q: query,
+              type: "video",
+              maxResults: "10",
+              key: youtubeKey,
+            });
+            if (embeddableOnly) params.set("videoEmbeddable", "true");
+
+            const url = `https://www.googleapis.com/youtube/v3/search?${params}`;
+            const res = await fetch(url);
+            if (!res.ok) {
+              const errText = await res.text();
+              console.log(`YouTube search error (${res.status}) for "${query}": ${errText}`);
+              return [];
+            }
+            const data = await res.json();
+            return (
+              data.items
+                ?.filter(
+                  (item: any) =>
+                    item.id?.videoId &&
+                    item.snippet?.title !== "Deleted video" &&
+                    item.snippet?.title !== "Private video"
+                )
+                ?.map((item: any) => item.id.videoId) || []
+            );
           };
-          console.log(`No embeddable YouTube video found after all attempts (${candidates.length} candidates checked). Last API error: ${lastYouTubeError}`);
+
+          const pickBestVideo = async (candidateIds: string[]): Promise<string | null> => {
+            if (candidateIds.length === 0) return null;
+            const verifyUrl = `https://www.googleapis.com/youtube/v3/videos?part=status,contentDetails&id=${candidateIds.join(",")}&key=${youtubeKey}`;
+            const res = await fetch(verifyUrl);
+            if (!res.ok) {
+              console.log(`Verify API failed (${res.status}), skipping verification`);
+              return candidateIds[0];
+            }
+            const data = await res.json();
+            const playable = data.items?.find(
+              (v: any) => v.status?.embeddable === true && v.status?.privacyStatus === "public"
+            );
+            if (playable) {
+              console.log(`Verified embeddable video: ${playable.id}`);
+              return playable.id;
+            }
+            console.log(`All ${candidateIds.length} candidates failed embed verification — returning null`);
+            return null;
+          };
+
+          const primaryQuery = parsed.youtubeSearchQuery || `${parsed.artist} ${parsed.songTitle}`;
+          console.log(`YouTube primary search: "${primaryQuery}"`);
+
+          // 5-step fallback search
+          let candidates = await searchYouTube(primaryQuery, true);
+          console.log(`Attempt 1 (embeddable): ${candidates.length} candidates`);
+
+          if (candidates.length === 0) {
+            candidates = await searchYouTube(primaryQuery, false);
+            console.log(`Attempt 2 (no filter): ${candidates.length} candidates`);
+          }
+
+          if (candidates.length === 0) {
+            const officialQuery = `${parsed.artist} ${parsed.songTitle} official`;
+            candidates = await searchYouTube(officialQuery, false);
+            console.log(`Attempt 3 (official "${officialQuery}"): ${candidates.length} candidates`);
+          }
+
+          if (candidates.length === 0) {
+            const simpleQuery = `${parsed.artist} ${parsed.songTitle}`;
+            if (simpleQuery !== primaryQuery) {
+              candidates = await searchYouTube(simpleQuery, false);
+              console.log(`Attempt 4 (simple "${simpleQuery}"): ${candidates.length} candidates`);
+            }
+          }
+
+          if (candidates.length === 0) {
+            candidates = await searchYouTube(parsed.songTitle, false);
+            console.log(`Attempt 5 (title only "${parsed.songTitle}"): ${candidates.length} candidates`);
+          }
+
+          const bestId = await pickBestVideo(candidates);
+          parsed.youtubeId = bestId || null;
+          console.log(`Final selected YouTube video: ${parsed.youtubeId}`);
+
+          // 3) Save to cache (even if null, to avoid re-searching)
+          await setYtCache(parsed.artist, parsed.songTitle, parsed.youtubeId);
         }
       } catch (ytErr) {
         console.log("YouTube search failed (non-fatal):", ytErr);
-        parsed.youtubeDebug = { status: "exception", apiError: String(ytErr).substring(0, 500) };
+        parsed.youtubeId = null;
       }
     } else {
       console.log("YOUTUBE_API_KEY not set, skipping YouTube video search");
-      parsed.youtubeDebug = { status: "no_api_key" };
+      parsed.youtubeId = null;
     }
 
     return c.json({ success: true, result: parsed });
