@@ -17,8 +17,22 @@ import { motion, AnimatePresence } from "motion/react";
 import { useI18n } from "./i18n";
 import type { VibeResult } from "./ResultDisplay";
 
-type FrameTheme = "minimal" | "polaroid" | "film" | "neon";
+type FrameTheme = "minimal" | "polaroid" | "film" | "neon" | "y2k" | "vintage" | "ticket";
 type Orientation = "portrait" | "landscape";
+
+// Y2K sparkle positions (fixed so html2canvas can capture them)
+const Y2K_SPARKLES = [
+  { top: "12%", left: "18%", size: 6, color: "rgba(255,105,180,0.9)", delay: 0 },
+  { top: "22%", left: "78%", size: 5, color: "rgba(0,191,255,0.85)", delay: 0.4 },
+  { top: "38%", left: "88%", size: 4, color: "rgba(180,0,255,0.8)", delay: 0.8 },
+  { top: "52%", left: "8%", size: 5, color: "rgba(0,191,255,0.85)", delay: 1.2 },
+  { top: "65%", left: "72%", size: 6, color: "rgba(255,105,180,0.9)", delay: 0.6 },
+  { top: "78%", left: "25%", size: 4, color: "rgba(180,0,255,0.8)", delay: 1.0 },
+  { top: "45%", left: "50%", size: 5, color: "rgba(255,255,255,0.7)", delay: 0.2 },
+  { top: "18%", left: "42%", size: 4, color: "rgba(255,105,180,0.7)", delay: 1.4 },
+  { top: "85%", left: "60%", size: 5, color: "rgba(0,191,255,0.8)", delay: 0.3 },
+  { top: "70%", left: "15%", size: 4, color: "rgba(255,255,255,0.6)", delay: 0.9 },
+];
 
 interface VibeCardProps {
   result: VibeResult;
@@ -34,10 +48,13 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 const FRAME_THEMES: { key: FrameTheme; icon: string; label: string }[] = [
-  { key: "minimal", icon: "🎵", label: "Minimal" },
-  { key: "polaroid", icon: "📸", label: "Polaroid" },
-  { key: "film", icon: "🎬", label: "Film" },
-  { key: "neon", icon: "✨", label: "Neon" },
+  { key: "minimal", icon: "\u{1F3B5}", label: "Minimal" },
+  { key: "polaroid", icon: "\u{1F4F8}", label: "Polaroid" },
+  { key: "film", icon: "\u{1F3AC}", label: "Film" },
+  { key: "neon", icon: "\u2728", label: "Neon" },
+  { key: "y2k", icon: "\u{1F4BF}", label: "Y2K" },
+  { key: "vintage", icon: "\u{1F5BC}\uFE0F", label: "Vintage" },
+  { key: "ticket", icon: "\u{1F3AB}", label: "Ticket" },
 ];
 
 const ThreadsIcon = () => (
@@ -106,7 +123,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
     }
   }, [result.vibe, getCanvas]);
 
-  const shareText = `My vibe is "${result.emoji} ${result.vibe}"!\nTheme song: ${result.songTitle} by ${result.artist} 🎵`;
+  const shareText = `My vibe is "${result.emoji} ${result.vibe}"!\nTheme song: ${result.songTitle} by ${result.artist} \u{1F3B5}`;
   const shareUrl = "https://vibetube.vercel.app";
 
   const handleXShare = useCallback(() => {
@@ -125,7 +142,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
   }, [shareText]);
 
   const isLandscape = orientation === "landscape";
-  // padding-top percentage hack for html2canvas (it doesn't support aspectRatio CSS)
   const paddingTop = isLandscape ? "75%" : "133.33%";
 
   const getFrameStyles = (): React.CSSProperties => {
@@ -163,6 +179,40 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
           borderStyle: "solid",
           borderColor: hexToRgba(result.color, 0.7),
         };
+      case "y2k":
+        return {
+          ...base,
+          backgroundColor: "#0d001a",
+          borderRadius: "20px",
+          padding: "5px",
+          boxShadow:
+            "0 0 40px rgba(255,105,180,0.35), 0 0 80px rgba(0,191,255,0.2), 0 0 120px rgba(180,0,255,0.1), inset 0 0 30px rgba(255,105,180,0.15)",
+          borderWidth: "2px",
+          borderStyle: "solid",
+          borderColor: "rgba(255,105,180,0.6)",
+        };
+      case "vintage":
+        return {
+          ...base,
+          backgroundColor: "#1a0f1e",
+          borderRadius: "6px",
+          padding: "18px",
+          boxShadow:
+            "0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,175,110,0.3), inset 0 -1px 0 rgba(0,0,0,0.4), 0 0 60px rgba(212,175,110,0.08)",
+          borderWidth: "3px",
+          borderStyle: "solid",
+          borderColor: "#b8941e",
+          backgroundImage: "linear-gradient(135deg, #1a0f1e 0%, #2a1530 40%, #1a0f1e 100%)",
+        };
+      case "ticket":
+        return {
+          ...base,
+          backgroundColor: "#1a1a2e",
+          borderRadius: "12px",
+          padding: "0",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)",
+          overflow: "hidden" as const,
+        };
       default:
         return { ...base, borderRadius: "16px", backgroundColor: "#000" };
     }
@@ -173,6 +223,9 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
       case "polaroid": return "2px";
       case "film": return "2px";
       case "neon": return "12px";
+      case "y2k": return "16px";
+      case "vintage": return "0px";
+      case "ticket": return "0px";
       default: return "16px";
     }
   };
@@ -206,6 +259,38 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
     </div>
   );
 
+  /* Ticket punch holes — semicircles on top & bottom edges */
+  const TicketPunchHoles = ({ position }: { position: "top" | "bottom" }) => {
+    const count = isLandscape ? 10 : 7;
+    return (
+      <div
+        style={{
+          position: "absolute",
+          [position]: "-6px",
+          left: "12px",
+          right: "12px",
+          display: "flex",
+          justifyContent: "space-between",
+          zIndex: 5,
+          pointerEvents: "none",
+        }}
+      >
+        {Array.from({ length: count }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "9999px",
+              backgroundColor: "rgba(0,0,0,0.7)",
+              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.4)",
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
+
   const modalMaxWidth = isLandscape ? "480px" : "360px";
 
   const socialBtnStyle: React.CSSProperties = {
@@ -221,6 +306,10 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
     color: "#fff",
     padding: 0,
   };
+
+  /* Row split for 4+3 grid: first 4 in row 1, last 3 in row 2 */
+  const row1 = FRAME_THEMES.slice(0, 4);
+  const row2 = FRAME_THEMES.slice(4);
 
   return (
     <AnimatePresence>
@@ -270,37 +359,45 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
               justifyContent: "center",
             }}
           >
+            {/* Theme selector — 4 / 3 grid */}
             <div
               style={{
                 display: "flex",
-                gap: "4px",
+                flexDirection: "column",
+                gap: "3px",
                 backgroundColor: "rgba(255,255,255,0.1)",
                 borderRadius: "12px",
                 padding: "4px",
               }}
             >
-              {FRAME_THEMES.map((th) => (
-                <button
-                  key={th.key}
-                  onClick={() => setFrame(th.key)}
-                  style={{
-                    padding: "5px 10px",
-                    borderRadius: "8px",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "0.65rem",
-                    fontWeight: frame === th.key ? 600 : 400,
-                    backgroundColor: frame === th.key ? "rgba(255,255,255,0.95)" : "transparent",
-                    color: frame === th.key ? "#333" : "rgba(255,255,255,0.6)",
-                    transition: "all 0.2s",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "3px",
-                  }}
-                >
-                  <span style={{ fontSize: "0.75rem" }}>{th.icon}</span>
-                  {th.label}
-                </button>
+              {[row1, row2].map((row, ri) => (
+                <div key={ri} style={{ display: "flex", gap: "3px", justifyContent: "center" }}>
+                  {row.map((th) => (
+                    <button
+                      key={th.key}
+                      onClick={() => setFrame(th.key)}
+                      style={{
+                        padding: "5px 9px",
+                        borderRadius: "8px",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "0.6rem",
+                        fontWeight: frame === th.key ? 600 : 400,
+                        backgroundColor: frame === th.key ? "rgba(255,255,255,0.95)" : "transparent",
+                        color: frame === th.key ? "#333" : "rgba(255,255,255,0.6)",
+                        transition: "all 0.2s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "2px",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={th.label}
+                    >
+                      <span style={{ fontSize: "0.7rem" }}>{th.icon}</span>
+                      {th.label}
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
 
@@ -375,12 +472,312 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                 </>
               )}
 
-              {/*
-                Photo container — three-layer approach:
-                Layer 1: overflow:hidden for border-radius clipping of background image
-                Layer 2: badge+play at TOP — outside overflow:hidden so never clips
-                Layer 3: song info + player at BOTTOM — outside overflow:hidden
-              */}
+              {/* ===== Y2K decorations ===== */}
+              {frame === "y2k" && (
+                <>
+                  {/* Corner stars */}
+                  <div style={{ position: "absolute", top: "8px", left: "12px", fontSize: "0.9rem", zIndex: 5, pointerEvents: "none", filter: "drop-shadow(0 0 4px rgba(255,105,180,0.8))" }}>
+                    {"✦"}
+                  </div>
+                  <div style={{ position: "absolute", top: "8px", right: "12px", fontSize: "0.7rem", zIndex: 5, pointerEvents: "none", filter: "drop-shadow(0 0 4px rgba(0,191,255,0.8))" }}>
+                    {"★"}
+                  </div>
+                  <div style={{ position: "absolute", bottom: "8px", left: "12px", fontSize: "0.7rem", zIndex: 5, pointerEvents: "none", filter: "drop-shadow(0 0 4px rgba(0,191,255,0.8))" }}>
+                    {"★"}
+                  </div>
+                  <div style={{ position: "absolute", bottom: "8px", right: "12px", fontSize: "0.9rem", zIndex: 5, pointerEvents: "none", filter: "drop-shadow(0 0 4px rgba(255,105,180,0.8))" }}>
+                    {"✦"}
+                  </div>
+                  {/* Neon border glow line inner */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "3px",
+                      borderRadius: "17px",
+                      border: "1px solid rgba(0,191,255,0.3)",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                      boxShadow: "inset 0 0 15px rgba(255,105,180,0.12), inset 0 0 30px rgba(0,191,255,0.08)",
+                    }}
+                  />
+                  {/* Butterfly/heart floaters */}
+                  {Y2K_SPARKLES.map((sparkle, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{
+                        opacity: [0.2, 0.9, 0.2],
+                        scale: [0.6, 1.3, 0.6],
+                        filter: [
+                          `drop-shadow(0 0 2px ${sparkle.color})`,
+                          `drop-shadow(0 0 8px ${sparkle.color})`,
+                          `drop-shadow(0 0 2px ${sparkle.color})`,
+                        ],
+                      }}
+                      transition={{
+                        duration: 1.6 + (i % 3) * 0.4,
+                        delay: sparkle.delay,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      style={{
+                        position: "absolute",
+                        top: sparkle.top,
+                        left: sparkle.left,
+                        width: `${sparkle.size}px`,
+                        height: `${sparkle.size}px`,
+                        borderRadius: "9999px",
+                        backgroundColor: sparkle.color,
+                        zIndex: 5,
+                        pointerEvents: "none",
+                      }}
+                    />
+                  ))}
+                </>
+              )}
+
+              {/* ===== Vintage ornate frame decoration ===== */}
+              {frame === "vintage" && (
+                <>
+                  {/* Outer gold shimmer border */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "0px",
+                      borderRadius: "4px",
+                      border: "1px solid rgba(212,175,110,0.15)",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                      boxShadow: "inset 0 0 40px rgba(212,175,110,0.06)",
+                    }}
+                  />
+                  {/* Primary gold inner frame */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "6px",
+                      border: "2px solid rgba(212,175,110,0.55)",
+                      borderRadius: "3px",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                      boxShadow: "0 0 12px rgba(212,175,110,0.15), inset 0 0 12px rgba(212,175,110,0.08)",
+                    }}
+                  />
+                  {/* Secondary thin inner line */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "10px",
+                      border: "1px solid rgba(212,175,110,0.25)",
+                      borderRadius: "2px",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {/* Decorative third line */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "14px",
+                      border: "1px solid rgba(212,175,110,0.12)",
+                      borderRadius: "1px",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {/* Corner ornaments — larger, more decorative L-brackets with inner flourish */}
+                  {(["top-left", "top-right", "bottom-left", "bottom-right"] as const).map((corner) => {
+                    const isTop = corner.includes("top");
+                    const isLeft = corner.includes("left");
+                    return (
+                      <div key={corner}>
+                        {/* Outer L bracket */}
+                        <div
+                          style={{
+                            position: "absolute",
+                            [isTop ? "top" : "bottom"]: "4px",
+                            [isLeft ? "left" : "right"]: "4px",
+                            width: "28px",
+                            height: "28px",
+                            zIndex: 6,
+                            pointerEvents: "none",
+                            borderColor: "rgba(212,175,110,0.7)",
+                            borderStyle: "solid",
+                            borderWidth: "0",
+                            ...(isTop && isLeft ? { borderTopWidth: "2px", borderLeftWidth: "2px" } : {}),
+                            ...(isTop && !isLeft ? { borderTopWidth: "2px", borderRightWidth: "2px" } : {}),
+                            ...(!isTop && isLeft ? { borderBottomWidth: "2px", borderLeftWidth: "2px" } : {}),
+                            ...(!isTop && !isLeft ? { borderBottomWidth: "2px", borderRightWidth: "2px" } : {}),
+                          }}
+                        />
+                        {/* Inner small L bracket */}
+                        <div
+                          style={{
+                            position: "absolute",
+                            [isTop ? "top" : "bottom"]: "8px",
+                            [isLeft ? "left" : "right"]: "8px",
+                            width: "14px",
+                            height: "14px",
+                            zIndex: 6,
+                            pointerEvents: "none",
+                            borderColor: "rgba(212,175,110,0.4)",
+                            borderStyle: "solid",
+                            borderWidth: "0",
+                            ...(isTop && isLeft ? { borderTopWidth: "1px", borderLeftWidth: "1px" } : {}),
+                            ...(isTop && !isLeft ? { borderTopWidth: "1px", borderRightWidth: "1px" } : {}),
+                            ...(!isTop && isLeft ? { borderBottomWidth: "1px", borderLeftWidth: "1px" } : {}),
+                            ...(!isTop && !isLeft ? { borderBottomWidth: "1px", borderRightWidth: "1px" } : {}),
+                          }}
+                        />
+                        {/* Diamond accent at corner */}
+                        <div
+                          style={{
+                            position: "absolute",
+                            [isTop ? "top" : "bottom"]: "2px",
+                            [isLeft ? "left" : "right"]: "2px",
+                            width: "6px",
+                            height: "6px",
+                            backgroundColor: "rgba(212,175,110,0.5)",
+                            transform: "rotate(45deg)",
+                            zIndex: 7,
+                            pointerEvents: "none",
+                            boxShadow: "0 0 6px rgba(212,175,110,0.4)",
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                  {/* Top center ornament — fleur motif */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "3px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      zIndex: 6,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <div style={{ width: "20px", height: "1px", background: "linear-gradient(to right, transparent, rgba(212,175,110,0.5))" }} />
+                    <div style={{ fontSize: "0.55rem", color: "rgba(212,175,110,0.6)", filter: "drop-shadow(0 0 3px rgba(212,175,110,0.3))" }}>{"✦"}</div>
+                    <div style={{ width: "20px", height: "1px", background: "linear-gradient(to left, transparent, rgba(212,175,110,0.5))" }} />
+                  </div>
+                  {/* Bottom center ornament */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "3px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      zIndex: 6,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <div style={{ width: "20px", height: "1px", background: "linear-gradient(to right, transparent, rgba(212,175,110,0.5))" }} />
+                    <div style={{ fontSize: "0.55rem", color: "rgba(212,175,110,0.6)", filter: "drop-shadow(0 0 3px rgba(212,175,110,0.3))" }}>{"✦"}</div>
+                    <div style={{ width: "20px", height: "1px", background: "linear-gradient(to left, transparent, rgba(212,175,110,0.5))" }} />
+                  </div>
+                  {/* Subtle velvet texture overlay */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      zIndex: 4,
+                      pointerEvents: "none",
+                      borderRadius: "4px",
+                      background: "radial-gradient(ellipse at center, rgba(120,60,90,0.08) 0%, transparent 70%)",
+                      mixBlendMode: "overlay",
+                    }}
+                  />
+                  {/* Gold shimmer accent on edges */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      zIndex: 4,
+                      pointerEvents: "none",
+                      borderRadius: "4px",
+                      background: "linear-gradient(135deg, rgba(212,175,110,0.08) 0%, transparent 30%, transparent 70%, rgba(212,175,110,0.05) 100%)",
+                    }}
+                  />
+                </>
+              )}
+
+              {/* ===== Ticket — movie ticket style ===== */}
+              {frame === "ticket" && (
+                <>
+                  {/* Left side notch (tear) */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: "-10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "9999px",
+                      backgroundColor: "rgba(0,0,0,0.7)",
+                      zIndex: 6,
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {/* Right side notch (tear) */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: "-10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "9999px",
+                      backgroundColor: "rgba(0,0,0,0.7)",
+                      zIndex: 6,
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {/* Vertical dashed tear line */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: "0",
+                      right: "0",
+                      top: "50%",
+                      borderTop: "2px dashed rgba(255,255,255,0.12)",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                    }}
+                  />
+                  {/* Header bar — cinema style */}
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      padding: "10px 16px 8px 16px",
+                      background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      zIndex: 4,
+                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    }}
+                  >
+                    <span style={{ fontSize: "0.5rem", fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.12em", textTransform: "uppercase" as const }}>
+                      {"🎬"} VibeTube Cinema
+                    </span>
+                    <span style={{ fontSize: "0.45rem", color: "rgba(255,255,255,0.25)", letterSpacing: "0.05em", fontFamily: "monospace" }}>
+                      NO. {String(Math.abs(result.vibe.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 9999)).padStart(4, "0")}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {/* Photo container */}
               <div
                 style={{
                   position: "relative",
@@ -389,7 +786,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                   borderRadius: getImageRadius(),
                 }}
               >
-                {/* Layer 1: Image + gradient — overflow:hidden for border-radius crop */}
+                {/* Layer 1: Image + gradient */}
                 <div
                   style={{
                     position: "absolute",
@@ -412,9 +809,56 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                         : "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 32%, transparent 58%)",
                     }}
                   />
+
+                  {/* Y2K chromatic gradient */}
+                  {frame === "y2k" && (
+                    <>
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "linear-gradient(135deg, rgba(255,105,180,0.2) 0%, transparent 35%, rgba(0,191,255,0.2) 65%, rgba(180,0,255,0.15) 100%)",
+                          mixBlendMode: "screen",
+                        }}
+                      />
+                      {/* Sparkle dots */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)",
+                          backgroundSize: "24px 24px",
+                          opacity: 0.3,
+                          mixBlendMode: "overlay",
+                        }}
+                      />
+                    </>
+                  )}
+
+                  {/* Vintage sepia tint */}
+                  {frame === "vintage" && (
+                    <>
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "linear-gradient(to bottom, rgba(184,156,110,0.15) 0%, rgba(80,40,60,0.12) 50%, rgba(100,80,60,0.18) 100%)",
+                          mixBlendMode: "overlay",
+                        }}
+                      />
+                      {/* Warm vignette */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "radial-gradient(ellipse at center, transparent 40%, rgba(15,8,18,0.4) 100%)",
+                        }}
+                      />
+                    </>
+                  )}
                 </div>
 
-                {/* Layer 2: Badge at TOP — outside overflow:hidden */}
+                {/* Layer 2: Badge at TOP */}
                 <div
                   style={{
                     position: "absolute",
@@ -428,7 +872,6 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                     zIndex: 3,
                   }}
                 >
-                  {/* Vibe badge — no background, text only */}
                   <div
                     style={{
                       display: "flex",
@@ -441,17 +884,19 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                       color: "#ffffff",
                       letterSpacing: "0.08em",
                       textTransform: "uppercase" as const,
-                      textShadow: "0 2px 8px rgba(0,0,0,0.6)",
+                      textShadow: frame === "y2k"
+                        ? "0 0 12px rgba(255,105,180,0.8), 0 2px 8px rgba(0,0,0,0.6)"
+                        : "0 2px 8px rgba(0,0,0,0.6)",
                       whiteSpace: "nowrap" as const,
                       textAlign: "center" as const,
                     }}
                   >
-                    <Sparkles style={{ width: "13px", height: "13px", flexShrink: 0, color: "#fff", filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.4))" }} />
+                    <Sparkles style={{ width: "13px", height: "13px", flexShrink: 0, color: "#fff", filter: frame === "y2k" ? "drop-shadow(0 0 4px rgba(255,105,180,0.6))" : "drop-shadow(0 1px 3px rgba(0,0,0,0.4))" }} />
                     <span>{result.emoji} {result.vibe}</span>
                   </div>
                 </div>
 
-                {/* Layer 3: Song info + Player UI at BOTTOM — outside overflow:hidden */}
+                {/* Layer 3: Song info + Player UI at BOTTOM */}
                 <div
                   style={{
                     position: "absolute",
@@ -476,6 +921,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                         lineHeight: "1.35",
                         margin: 0,
                         wordBreak: "break-word" as const,
+                        ...(frame === "y2k" ? { textShadow: "0 0 8px rgba(255,105,180,0.5)" } : {}),
                       }}
                     >
                       {result.songTitle}
@@ -493,7 +939,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                     </p>
                   </div>
 
-                  {/* Player UI — transparent, no background */}
+                  {/* Player UI */}
                   <div
                     style={{
                       width: "100%",
@@ -516,8 +962,11 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                         style={{
                           width: "65%",
                           height: "100%",
-                          backgroundColor: "#ffffff",
+                          backgroundColor: frame === "y2k"
+                            ? "rgba(255,105,180,0.9)"
+                            : "#ffffff",
                           borderRadius: "2px",
+                          ...(frame === "y2k" ? { boxShadow: "0 0 6px rgba(255,105,180,0.5)" } : {}),
                         }}
                       />
                       <div
@@ -529,8 +978,10 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                           width: "9px",
                           height: "9px",
                           borderRadius: "9999px",
-                          backgroundColor: "#ffffff",
-                          boxShadow: "0 0 4px rgba(0,0,0,0.3)",
+                          backgroundColor: frame === "y2k" ? "#ff69b4" : "#ffffff",
+                          boxShadow: frame === "y2k"
+                            ? "0 0 8px rgba(255,105,180,0.8)"
+                            : "0 0 4px rgba(0,0,0,0.3)",
                         }}
                       />
                     </div>
@@ -551,14 +1002,16 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                           width: "34px",
                           height: "34px",
                           borderRadius: "9999px",
-                          backgroundColor: "#ffffff",
+                          backgroundColor: frame === "y2k" ? "rgba(255,105,180,0.9)" : "#ffffff",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                          boxShadow: frame === "y2k"
+                            ? "0 0 16px rgba(255,105,180,0.6), 0 2px 8px rgba(0,0,0,0.2)"
+                            : "0 2px 8px rgba(0,0,0,0.2)",
                         }}
                       >
-                        <Pause style={{ width: "16px", height: "16px", color: "#000", fill: "#000" }} />
+                        <Pause style={{ width: "16px", height: "16px", color: frame === "y2k" ? "#fff" : "#000", fill: frame === "y2k" ? "#fff" : "#000" }} />
                       </div>
                       <SkipForward style={{ width: "15px", height: "15px", color: "#fff", fill: "#fff" }} />
                       <Heart style={{ width: "15px", height: "15px", color: "rgba(255,255,255,0.5)" }} />
@@ -594,6 +1047,30 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                   >
                     {result.emoji} {result.vibe}
                   </p>
+                </div>
+              )}
+
+              {/* Ticket bottom stub */}
+              {frame === "ticket" && (
+                <div
+                  style={{
+                    position: "relative",
+                    width: "100%",
+                    padding: "8px 16px 10px 16px",
+                    background: "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.04) 100%)",
+                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    zIndex: 4,
+                  }}
+                >
+                  <span style={{ fontSize: "0.42rem", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", fontFamily: "monospace" }}>
+                    SCREEN 01 · SEAT A12
+                  </span>
+                  <span style={{ fontSize: "0.42rem", color: "rgba(255,255,255,0.2)", letterSpacing: "0.06em", fontFamily: "monospace" }}>
+                    vibetube.vercel.app
+                  </span>
                 </div>
               )}
             </div>
@@ -645,7 +1122,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
               style={socialBtnStyle}
               title="Share on X"
             >
-              <span style={{ fontSize: "1rem", fontWeight: 700 }}>𝕏</span>
+              <span style={{ fontSize: "1rem", fontWeight: 700 }}>{"\u{1D54F}"}</span>
             </motion.button>
 
             {/* Threads */}
