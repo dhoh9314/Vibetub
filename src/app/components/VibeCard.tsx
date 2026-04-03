@@ -124,7 +124,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
   }, [result.vibe, getCanvas]);
 
   const shareText = `My vibe is "${result.emoji} ${result.vibe}"!\nTheme song: ${result.songTitle} by ${result.artist} \u{1F3B5}`;
-  const shareUrl = "https://vibetube.vercel.app";
+  const shareUrl = "https://vibetub.vercel.app";
 
   const handleXShare = useCallback(() => {
     window.open(
@@ -194,15 +194,12 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
       case "vintage":
         return {
           ...base,
-          backgroundColor: "#1a0f1e",
-          borderRadius: "6px",
-          padding: "18px",
+          backgroundColor: "#2c1810",
+          borderRadius: "2px",
+          padding: "22px",
+          border: "none",
           boxShadow:
-            "0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,175,110,0.3), inset 0 -1px 0 rgba(0,0,0,0.4), 0 0 60px rgba(212,175,110,0.08)",
-          borderWidth: "3px",
-          borderStyle: "solid",
-          borderColor: "#b8941e",
-          backgroundImage: "linear-gradient(135deg, #1a0f1e 0%, #2a1530 40%, #1a0f1e 100%)",
+            "0 10px 50px rgba(0,0,0,0.7), 0 0 80px rgba(180,140,60,0.08)",
         };
       case "ticket":
         return {
@@ -538,69 +535,119 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
               {/* ===== Vintage ornate frame decoration ===== */}
               {frame === "vintage" && (
                 <>
-                  {/* Outer gold shimmer border */}
+                  {/* Layer 1: Outermost carved molding — dark recessed edge */}
                   <div
                     style={{
                       position: "absolute",
                       inset: "0px",
-                      borderRadius: "4px",
-                      border: "1px solid rgba(212,175,110,0.15)",
-                      zIndex: 5,
-                      pointerEvents: "none",
-                      boxShadow: "inset 0 0 40px rgba(212,175,110,0.06)",
-                    }}
-                  />
-                  {/* Primary gold inner frame */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: "6px",
-                      border: "2px solid rgba(212,175,110,0.55)",
-                      borderRadius: "3px",
-                      zIndex: 5,
-                      pointerEvents: "none",
-                      boxShadow: "0 0 12px rgba(212,175,110,0.15), inset 0 0 12px rgba(212,175,110,0.08)",
-                    }}
-                  />
-                  {/* Secondary thin inner line */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: "10px",
-                      border: "1px solid rgba(212,175,110,0.25)",
                       borderRadius: "2px",
                       zIndex: 5,
                       pointerEvents: "none",
+                      border: "3px solid #8b6914",
+                      boxShadow:
+                        "inset 0 2px 4px rgba(255,220,130,0.3), inset 0 -2px 4px rgba(30,15,0,0.6), 0 0 0 1px rgba(60,30,5,0.8)",
                     }}
                   />
-                  {/* Decorative third line */}
+                  {/* Layer 2: Outer raised gold ridge */}
                   <div
                     style={{
                       position: "absolute",
-                      inset: "14px",
-                      border: "1px solid rgba(212,175,110,0.12)",
+                      inset: "3px",
                       borderRadius: "1px",
                       zIndex: 5,
                       pointerEvents: "none",
+                      border: "4px solid #c5a23c",
+                      boxShadow:
+                        "inset 0 1px 2px rgba(255,235,170,0.5), inset 0 -1px 3px rgba(80,50,10,0.5)",
+                      backgroundClip: "border-box",
                     }}
                   />
-                  {/* Corner ornaments — larger, more decorative L-brackets with inner flourish */}
+                  {/* Layer 3: Sculpted channel / groove */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "7px",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                      border: "2px solid #6b4c12",
+                      boxShadow:
+                        "inset 0 1px 3px rgba(0,0,0,0.4), inset 0 -1px 1px rgba(200,170,80,0.2)",
+                    }}
+                  />
+                  {/* Layer 4: Wide ornamental band — gradient simulating carved relief */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "9px",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                      border: "6px solid transparent",
+                      borderImage: "linear-gradient(135deg, #d4af37 0%, #f5d98a 25%, #b8860b 50%, #f5d98a 75%, #d4af37 100%) 1",
+                      boxShadow:
+                        "inset 0 2px 6px rgba(255,220,130,0.2), inset 0 -2px 6px rgba(40,20,0,0.4)",
+                    }}
+                  />
+                  {/* Layer 5: Inner raised lip */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "15px",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                      border: "2px solid #a08030",
+                      boxShadow:
+                        "inset 0 1px 2px rgba(255,220,130,0.35), inset 0 -1px 2px rgba(40,20,0,0.5), 0 0 0 1px rgba(90,60,15,0.4)",
+                    }}
+                  />
+                  {/* Layer 6: Innermost dark recess / rabbet */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "17px",
+                      zIndex: 5,
+                      pointerEvents: "none",
+                      border: "2px solid #3d2810",
+                      boxShadow:
+                        "inset 0 2px 6px rgba(0,0,0,0.5), inset 0 -1px 2px rgba(0,0,0,0.3)",
+                    }}
+                  />
+                  {/* Corner ornaments — baroque scrollwork motif */}
                   {(["top-left", "top-right", "bottom-left", "bottom-right"] as const).map((corner) => {
                     const isTop = corner.includes("top");
                     const isLeft = corner.includes("left");
                     return (
                       <div key={corner}>
-                        {/* Outer L bracket */}
+                        {/* Outer bracket */}
                         <div
                           style={{
                             position: "absolute",
-                            [isTop ? "top" : "bottom"]: "4px",
-                            [isLeft ? "left" : "right"]: "4px",
-                            width: "28px",
-                            height: "28px",
+                            [isTop ? "top" : "bottom"]: "2px",
+                            [isLeft ? "left" : "right"]: "2px",
+                            width: "30px",
+                            height: "30px",
                             zIndex: 6,
                             pointerEvents: "none",
-                            borderColor: "rgba(212,175,110,0.7)",
+                            borderColor: "#d4af37",
+                            borderStyle: "solid",
+                            borderWidth: "0",
+                            ...(isTop && isLeft ? { borderTopWidth: "3px", borderLeftWidth: "3px" } : {}),
+                            ...(isTop && !isLeft ? { borderTopWidth: "3px", borderRightWidth: "3px" } : {}),
+                            ...(!isTop && isLeft ? { borderBottomWidth: "3px", borderLeftWidth: "3px" } : {}),
+                            ...(!isTop && !isLeft ? { borderBottomWidth: "3px", borderRightWidth: "3px" } : {}),
+                            filter: "drop-shadow(0 0 2px rgba(212,175,55,0.4))",
+                          }}
+                        />
+                        {/* Inner small bracket */}
+                        <div
+                          style={{
+                            position: "absolute",
+                            [isTop ? "top" : "bottom"]: "7px",
+                            [isLeft ? "left" : "right"]: "7px",
+                            width: "16px",
+                            height: "16px",
+                            zIndex: 6,
+                            pointerEvents: "none",
+                            borderColor: "rgba(212,175,55,0.5)",
                             borderStyle: "solid",
                             borderWidth: "0",
                             ...(isTop && isLeft ? { borderTopWidth: "2px", borderLeftWidth: "2px" } : {}),
@@ -609,100 +656,87 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                             ...(!isTop && !isLeft ? { borderBottomWidth: "2px", borderRightWidth: "2px" } : {}),
                           }}
                         />
-                        {/* Inner small L bracket */}
+                        {/* Diamond accent */}
                         <div
                           style={{
                             position: "absolute",
-                            [isTop ? "top" : "bottom"]: "8px",
-                            [isLeft ? "left" : "right"]: "8px",
-                            width: "14px",
-                            height: "14px",
-                            zIndex: 6,
-                            pointerEvents: "none",
-                            borderColor: "rgba(212,175,110,0.4)",
-                            borderStyle: "solid",
-                            borderWidth: "0",
-                            ...(isTop && isLeft ? { borderTopWidth: "1px", borderLeftWidth: "1px" } : {}),
-                            ...(isTop && !isLeft ? { borderTopWidth: "1px", borderRightWidth: "1px" } : {}),
-                            ...(!isTop && isLeft ? { borderBottomWidth: "1px", borderLeftWidth: "1px" } : {}),
-                            ...(!isTop && !isLeft ? { borderBottomWidth: "1px", borderRightWidth: "1px" } : {}),
-                          }}
-                        />
-                        {/* Diamond accent at corner */}
-                        <div
-                          style={{
-                            position: "absolute",
-                            [isTop ? "top" : "bottom"]: "2px",
-                            [isLeft ? "left" : "right"]: "2px",
-                            width: "6px",
-                            height: "6px",
-                            backgroundColor: "rgba(212,175,110,0.5)",
+                            [isTop ? "top" : "bottom"]: "1px",
+                            [isLeft ? "left" : "right"]: "1px",
+                            width: "7px",
+                            height: "7px",
+                            backgroundColor: "#d4af37",
                             transform: "rotate(45deg)",
                             zIndex: 7,
                             pointerEvents: "none",
-                            boxShadow: "0 0 6px rgba(212,175,110,0.4)",
+                            boxShadow: "0 0 4px rgba(212,175,55,0.6), inset 0 0 2px rgba(255,235,170,0.4)",
                           }}
                         />
                       </div>
                     );
                   })}
-                  {/* Top center ornament — fleur motif */}
+                  {/* Top center ornament — fleur-de-lis inspired */}
                   <div
                     style={{
                       position: "absolute",
-                      top: "3px",
+                      top: "1px",
                       left: "50%",
                       transform: "translateX(-50%)",
                       display: "flex",
                       alignItems: "center",
-                      gap: "4px",
-                      zIndex: 6,
+                      gap: "3px",
+                      zIndex: 7,
                       pointerEvents: "none",
                     }}
                   >
-                    <div style={{ width: "20px", height: "1px", background: "linear-gradient(to right, transparent, rgba(212,175,110,0.5))" }} />
-                    <div style={{ fontSize: "0.55rem", color: "rgba(212,175,110,0.6)", filter: "drop-shadow(0 0 3px rgba(212,175,110,0.3))" }}>{"✦"}</div>
-                    <div style={{ width: "20px", height: "1px", background: "linear-gradient(to left, transparent, rgba(212,175,110,0.5))" }} />
+                    <div style={{ width: "24px", height: "2px", background: "linear-gradient(to right, transparent, #d4af37)" }} />
+                    <div style={{ fontSize: "0.6rem", color: "#d4af37", filter: "drop-shadow(0 0 3px rgba(212,175,55,0.5))", lineHeight: 1 }}>{"❧"}</div>
+                    <div style={{ width: "24px", height: "2px", background: "linear-gradient(to left, transparent, #d4af37)" }} />
                   </div>
                   {/* Bottom center ornament */}
                   <div
                     style={{
                       position: "absolute",
-                      bottom: "3px",
+                      bottom: "1px",
                       left: "50%",
-                      transform: "translateX(-50%)",
+                      transform: "translateX(-50%) scaleY(-1)",
                       display: "flex",
                       alignItems: "center",
-                      gap: "4px",
-                      zIndex: 6,
+                      gap: "3px",
+                      zIndex: 7,
                       pointerEvents: "none",
                     }}
                   >
-                    <div style={{ width: "20px", height: "1px", background: "linear-gradient(to right, transparent, rgba(212,175,110,0.5))" }} />
-                    <div style={{ fontSize: "0.55rem", color: "rgba(212,175,110,0.6)", filter: "drop-shadow(0 0 3px rgba(212,175,110,0.3))" }}>{"✦"}</div>
-                    <div style={{ width: "20px", height: "1px", background: "linear-gradient(to left, transparent, rgba(212,175,110,0.5))" }} />
+                    <div style={{ width: "24px", height: "2px", background: "linear-gradient(to right, transparent, #d4af37)" }} />
+                    <div style={{ fontSize: "0.6rem", color: "#d4af37", filter: "drop-shadow(0 0 3px rgba(212,175,55,0.5))", lineHeight: 1 }}>{"❧"}</div>
+                    <div style={{ width: "24px", height: "2px", background: "linear-gradient(to left, transparent, #d4af37)" }} />
                   </div>
-                  {/* Subtle velvet texture overlay */}
+                  {/* Side ornaments — small diamonds on midpoints */}
+                  {(["left", "right"] as const).map((side) => (
+                    <div
+                      key={side}
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        [side]: "1px",
+                        transform: "translateY(-50%) rotate(45deg)",
+                        width: "6px",
+                        height: "6px",
+                        backgroundColor: "#d4af37",
+                        zIndex: 7,
+                        pointerEvents: "none",
+                        boxShadow: "0 0 4px rgba(212,175,55,0.5)",
+                      }}
+                    />
+                  ))}
+                  {/* Gold shimmer gradient overlay on frame area */}
                   <div
                     style={{
                       position: "absolute",
                       inset: 0,
                       zIndex: 4,
                       pointerEvents: "none",
-                      borderRadius: "4px",
-                      background: "radial-gradient(ellipse at center, rgba(120,60,90,0.08) 0%, transparent 70%)",
-                      mixBlendMode: "overlay",
-                    }}
-                  />
-                  {/* Gold shimmer accent on edges */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      zIndex: 4,
-                      pointerEvents: "none",
-                      borderRadius: "4px",
-                      background: "linear-gradient(135deg, rgba(212,175,110,0.08) 0%, transparent 30%, transparent 70%, rgba(212,175,110,0.05) 100%)",
+                      borderRadius: "2px",
+                      background: "linear-gradient(160deg, rgba(245,217,138,0.08) 0%, transparent 25%, transparent 75%, rgba(245,217,138,0.05) 100%)",
                     }}
                   />
                 </>
@@ -1027,7 +1061,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                         letterSpacing: "0.08em",
                       }}
                     >
-                      vibetube.vercel.app
+                      vibetub.vercel.app
                     </span>
                   </div>
                 </div>
@@ -1069,7 +1103,7 @@ export function VibeCard({ result, previewUrl, onClose }: VibeCardProps) {
                     SCREEN 01 · SEAT A12
                   </span>
                   <span style={{ fontSize: "0.42rem", color: "rgba(255,255,255,0.2)", letterSpacing: "0.06em", fontFamily: "monospace" }}>
-                    vibetube.vercel.app
+                    vibetub.vercel.app
                   </span>
                 </div>
               )}
