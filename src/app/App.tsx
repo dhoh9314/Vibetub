@@ -6,7 +6,6 @@ import { ResultDisplay, type VibeResult } from "./components/ResultDisplay";
 import { analyzeVibe } from "./components/vibeData";
 import { I18nProvider, useI18n } from "./components/i18n";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
-import bmacQrImage from "figma:asset/5af22d860b1d9e0bdbbb4c3178653fdecf346001.png";
 
 function VibeTubeApp() {
   const { t } = useI18n();
