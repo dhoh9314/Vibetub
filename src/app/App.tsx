@@ -152,13 +152,13 @@ function VibeTubeApp() {
             {t("footer")}
           </p>
           <button
-            onClick={() => setShowQr(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-violet-200 hover:border-violet-400 bg-violet-50 hover:bg-violet-100 text-violet-600 transition-all duration-200 cursor-pointer"
-            style={{ fontSize: "0.7rem", fontWeight: 500 }}
-          >
-            <Coffee className="w-3.5 h-3.5" />
-            커피 한 잔만 사주실래요?
-          </button>
+  onClick={() => window.open("https://buymeacoffee.com/dawn53", "_blank")}
+  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-violet-200 hover:border-violet-400 bg-violet-50 text-violet-700 transition-colors"
+  style={{ fontSize: "0.7rem", fontWeight: 500 }}
+>
+  <Coffee className="w-3.5 h-3.5" />
+  커피 한 잔만 사주실래요?
+</button>
         </div>
       </footer>
 
